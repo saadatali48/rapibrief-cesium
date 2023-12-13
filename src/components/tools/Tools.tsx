@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import './Tools.css'
 import { ToolsData } from './ToolsData'
 import { useAppSelector } from '../../hooks/AppHooks'
@@ -17,49 +17,125 @@ import {
   HermitePolynomialApproximation,
   HorizontalOrigin,
   JulianDate,
+  LagrangePolynomialApproximation,
+  LinearApproximation,
   Model,
+  PolylineGlowMaterialProperty,
   SampledPositionProperty,
   SceneMode,
   ScreenSpaceEventHandler,
   ScreenSpaceEventType,
+  TimeInterval,
+  TimeIntervalCollection,
   Transforms,
+  VelocityOrientationProperty,
   VerticalOrigin,
   Math as cesiumMath,
   defined,
 } from 'cesium'
-import { aircrafts1, planeModel } from '../../assests/images'
-import { forEach, result } from 'lodash'
+import { aircrafts1, planeModel, planeModel1 } from '../../assests/images'
 
 const Tools = () => {
   const viewer = useAppSelector((store) => store.mapViewer.viewer)
-  let r = 0
-
-  const hpRoll = new HeadingPitchRoll()
-  const hpRange = new HeadingPitchRange()
-  let speed = 10
-  const deltaRadians = cesiumMath.toRadians(3.0)
-
-  let position = Cartesian3.fromDegrees(
-    72.99635561452611,
-    33.646269376139735,
-    1500.0
-  )
-  let speedVector = new Cartesian3()
-  const fixedFrameTransform = Transforms.localFrameToFixedFrameGenerator(
-    'north',
-    'west'
-  )
-
+  let handler: any
+  useEffect(() => {
+    if (viewer) {
+      handler = new ScreenSpaceEventHandler(viewer.scene?.canvas)
+    }
+  }, [viewer])
   let pathPositions = []
+  var startTime = JulianDate.fromIso8601('2023-01-01T00:00:00Z')
+  var endTime = JulianDate.addSeconds(startTime, 20, new JulianDate())
+  let modelPositionNow = new Cartesian3()
+
+  const start = JulianDate.fromDate(new Date())
+  const stop = JulianDate.addSeconds(start, 360, new JulianDate())
+
+  const computePath = () => {
+    var times = []
+    const property = new SampledPositionProperty()
+
+    for (let i = 0; i < pathPositions.length; i++) {
+      const time = JulianDate.addSeconds(start, i * 10, new JulianDate())
+      times.push(time)
+      property.addSample(time, pathPositions[i])
+      viewer.entities.add({
+        position: pathPositions[i],
+        point: {
+          pixelSize: 8,
+          color: Color.TRANSPARENT,
+          outlineColor: Color.YELLOW,
+          outlineWidth: 3,
+        },
+      })
+    }
+
+    return property
+  }
+
+  const addPlaneEntity2 = () => {
+    //Set the random number seed for consistent results.
+    cesiumMath.setRandomNumberSeed(3)
+
+    //Set bounds of our simulation time
+
+    //Make sure viewer is at the desired time.
+    viewer.clock.startTime = start.clone()
+    viewer.clock.stopTime = stop.clone()
+    viewer.clock.currentTime = start.clone()
+    viewer.clock.clockRange = ClockRange.LOOP_STOP //Loop at the end
+    viewer.clock.multiplier = 5
+    viewer.clock.shouldAnimate = true
+
+    //Set timeline to simulation bounds
+    viewer.timeline.zoomTo(start, stop)
+    const position = computePath()
+
+    //Actually create the entity
+    const entity = viewer.entities.add({
+      //Set the entity availability to the same interval as the simulation time.
+      availability: new TimeIntervalCollection([
+        new TimeInterval({
+          start: start,
+          stop: stop,
+        }),
+      ]),
+
+      //Use our computed positions
+      position: position,
+
+      //Automatically compute orientation based on position movement.
+      orientation: new VelocityOrientationProperty(position),
+
+      //Load the Cesium plane model to represent the entity
+      model: {
+        uri: planeModel1,
+        minimumPixelSize: 32,
+      },
+
+      //Show the path as a pink line sampled in 1 second increments.
+      // path: {
+      //   resolution: 1,
+      //   material: new PolylineGlowMaterialProperty({
+      //     glowPower: 0.1,
+      //     color: Color.YELLOW,
+      //   }),
+      //   width: 10,
+      // },
+    })
+    entity.position.setInterpolationOptions({
+      interpolationDegree: 5,
+      interpolationAlgorithm: LinearApproximation,
+    })
+  }
 
   const addPlaneEntity = () => {
     const entity = viewer.entities.add({
       name: 'plane',
       // position: position,
       position: new CallbackProperty(getPosition, false),
-
       model: {
-        uri: planeModel,
+        uri: planeModel1,
         heightReference: HeightReference.NONE,
         scale: 50,
         show: true,
@@ -77,8 +153,6 @@ const Tools = () => {
       // Add more times corresponding to positions
     ]
 
-    var startTime = JulianDate.fromIso8601('2023-01-01T00:00:00Z')
-    var endTime = JulianDate.addSeconds(startTime, 20, new JulianDate())
     pathPositions.forEach((pos) => {
       viewer.entities.add({
         position: pos,
@@ -97,13 +171,14 @@ const Tools = () => {
       var index = Math.floor(
         (currentTime / timeInterval) * (pathPositions.length - 1)
       )
-
-      return Cartesian3.lerp(
+      modelPositionNow = Cartesian3.lerp(
         pathPositions[index],
         pathPositions[index + 1],
         (currentTime % timeInterval) / timeInterval,
         result
       )
+
+      return modelPositionNow
     }
 
     viewer.clock.startTime = startTime.clone()
@@ -118,7 +193,7 @@ const Tools = () => {
     // viewer.zoomTo(entity)
   }
 
-  const onLeftClick = (movement: any) => {
+  const onLeftDown = (movement: any) => {
     console.log(movement)
 
     if (movement.position && viewer) {
@@ -129,32 +204,35 @@ const Tools = () => {
       const newPos = Cartesian3.fromRadians(
         cartographicPos.longitude,
         cartographicPos.latitude,
-        1500
+        15000
       )
       pathPositions.push(newPos)
       console.log(cartographicPos)
     }
   }
-  const onRightClick = (movement: any) => {
+  const onLeftDoubleClick = (movement: any) => {
     if (movement.position && viewer) {
       // const pos = viewer.scene.pickPosition(movement.position);
       // Cancel the events
-      addPlaneEntity()
+      // addPlaneEntity()
+      addPlaneEntity2()
+      handler.removeInputAction(ScreenSpaceEventType.LEFT_DOWN)
+      handler.removeInputAction(ScreenSpaceEventType.LEFT_DOUBLE_CLICK)
     }
   }
 
   const drawPolyline = () => {
     console.log('Here')
     pathPositions = []
-    const handler: any = new ScreenSpaceEventHandler(viewer.scene?.canvas)
+
     handler.setInputAction(function (movement: any) {
-      onLeftClick(movement)
-    }, ScreenSpaceEventType.LEFT_CLICK)
+      onLeftDown(movement)
+    }, ScreenSpaceEventType.LEFT_DOWN)
     handler.setInputAction(function (movement: any) {
       if (viewer.scene?.mode !== SceneMode.MORPHING) {
-        onRightClick(movement)
+        onLeftDoubleClick(movement)
       }
-    }, ScreenSpaceEventType.RIGHT_CLICK)
+    }, ScreenSpaceEventType.LEFT_DOUBLE_CLICK)
   }
 
   const handleIconClick = (selectedItemId: number) => {
@@ -178,11 +256,7 @@ const Tools = () => {
                   {item.children.map((childItem) => {
                     return (
                       <>
-                        <div
-                          className="col-sm"
-                          key={childItem.id}
-                          id={childItem.id}
-                        >
+                        <div className="col" key={childItem.id}>
                           <div
                             className="btn-icon"
                             onClick={(e) => {
