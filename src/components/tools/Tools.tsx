@@ -33,7 +33,12 @@ import {
   Math as cesiumMath,
   defined,
 } from 'cesium'
-import { aircrafts1, planeModel, planeModel1 } from '../../assests/images'
+import {
+  aircrafts1,
+  heli1,
+  planeModel,
+  planeModel1,
+} from '../../assests/images'
 
 const Tools = () => {
   const viewer = useAppSelector((store) => store.mapViewer.viewer)
@@ -128,6 +133,61 @@ const Tools = () => {
       interpolationAlgorithm: LinearApproximation,
     })
   }
+  const addHeliEntity = () => {
+    //Set the random number seed for consistent results.
+    cesiumMath.setRandomNumberSeed(3)
+
+    //Set bounds of our simulation time
+
+    //Make sure viewer is at the desired time.
+    viewer.clock.startTime = start.clone()
+    viewer.clock.stopTime = stop.clone()
+    viewer.clock.currentTime = start.clone()
+    viewer.clock.clockRange = ClockRange.LOOP_STOP //Loop at the end
+    viewer.clock.multiplier = 5
+    viewer.clock.shouldAnimate = true
+
+    //Set timeline to simulation bounds
+    viewer.timeline.zoomTo(start, stop)
+    const position = computePath()
+
+    //Actually create the entity
+    const entity = viewer.entities.add({
+      //Set the entity availability to the same interval as the simulation time.
+      availability: new TimeIntervalCollection([
+        new TimeInterval({
+          start: start,
+          stop: stop,
+        }),
+      ]),
+
+      //Use our computed positions
+      position: position,
+
+      //Automatically compute orientation based on position movement.
+      orientation: new VelocityOrientationProperty(position),
+
+      //Load the Cesium plane model to represent the entity
+      model: {
+        uri: heli1,
+        minimumPixelSize: 128,
+      },
+
+      //Show the path as a pink line sampled in 1 second increments.
+      // path: {
+      //   resolution: 1,
+      //   material: new PolylineGlowMaterialProperty({
+      //     glowPower: 0.1,
+      //     color: Color.YELLOW,
+      //   }),
+      //   width: 10,
+      // },
+    })
+    entity.position.setInterpolationOptions({
+      interpolationDegree: 5,
+      interpolationAlgorithm: LinearApproximation,
+    })
+  }
 
   const addPlaneEntity = () => {
     const entity = viewer.entities.add({
@@ -193,7 +253,7 @@ const Tools = () => {
     // viewer.zoomTo(entity)
   }
 
-  const onLeftDown = (movement: any) => {
+  const onLeftDown = (movement: any, selectedItemId: number) => {
     console.log(movement)
 
     if (movement.position && viewer) {
@@ -210,34 +270,37 @@ const Tools = () => {
       console.log(cartographicPos)
     }
   }
-  const onLeftDoubleClick = (movement: any) => {
+  const onLeftDoubleClick = (movement: any, selectedItemId: number) => {
     if (movement.position && viewer) {
       // const pos = viewer.scene.pickPosition(movement.position);
       // Cancel the events
       // addPlaneEntity()
-      addPlaneEntity2()
+      if (selectedItemId === 11) {
+        addPlaneEntity2()
+      } else if (selectedItemId === 12) {
+        addHeliEntity()
+      }
       handler.removeInputAction(ScreenSpaceEventType.LEFT_DOWN)
       handler.removeInputAction(ScreenSpaceEventType.LEFT_DOUBLE_CLICK)
     }
   }
 
-  const drawPolyline = () => {
-    console.log('Here')
+  const drawPolyline = (selectedItemId) => {
     pathPositions = []
 
     handler.setInputAction(function (movement: any) {
-      onLeftDown(movement)
+      onLeftDown(movement, selectedItemId)
     }, ScreenSpaceEventType.LEFT_DOWN)
     handler.setInputAction(function (movement: any) {
       if (viewer.scene?.mode !== SceneMode.MORPHING) {
-        onLeftDoubleClick(movement)
+        onLeftDoubleClick(movement, selectedItemId)
       }
     }, ScreenSpaceEventType.LEFT_DOUBLE_CLICK)
   }
 
   const handleIconClick = (selectedItemId: number) => {
-    if (selectedItemId === 11) {
-      drawPolyline()
+    if (selectedItemId === 11 || selectedItemId === 12) {
+      drawPolyline(selectedItemId)
     }
   }
 
