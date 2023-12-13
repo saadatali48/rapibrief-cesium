@@ -1,0 +1,15 @@
+.backdropTooltip{
+    display: none;
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+    pointer-events: none;
+    padding: 5px;
+    background-color: black;
+    border-radius: 5px;
+    color: #ccc;
+  }
+  table, th, td {
+    border:1px solid white;
+    padding: 5px;
+  }

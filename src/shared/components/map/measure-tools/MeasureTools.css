@@ -1,0 +1,44 @@
+.measure-btn {
+  background-color: transparent !important;
+  display: flex;
+  flex-flow: column;
+  border: transparent !important;
+  padding: 0 !important;
+}
+.p-button:enabled:active,
+.p-button:focus,
+.p-button:not(button):not(a):not(.p-disabled):active {
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+.p-button:enabled:hover,
+.p-button:not(button):not(a):not(.p-disabled):hover {
+  background: transparent !important;
+  border-color: transparent !important;
+}
+/* .p-overlaypanel .p-component .p-overlaypanel-enter-done {
+  background: rgba(26, 31, 36, 0.66);
+  border: 1px solid #848484;
+  border-radius: 4px 0px 0px 4px;
+} */
+
+.measure-menu {
+  position: absolute;
+  z-index: 9999;
+  background-color: white;
+  right: 3rem;
+  display: flex;
+  border-radius: 2px;
+  bottom: 14px;
+}
+.measure-menu div {
+  padding: 5px;
+}
+
+.measure-menu div :hover {
+  cursor: pointer;
+}
+
+.activeMenu {
+  background-color: #3d99f4;
+}

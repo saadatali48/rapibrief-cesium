@@ -1,0 +1,115 @@
+.sidebarDetail {
+  width: 21rem;
+  /* position: absolute;
+  z-index: 9999; */
+  height: calc(100% - 62px);
+  overflow-y: scroll;
+}
+.sidebarDetail::-webkit-scrollbar {
+  display: none;
+}
+
+.sidebarDetail ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sidebardetailheader {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 700;
+  font-size: 18px;
+  color: #3db685;
+  padding: 15px 20px;
+}
+
+ul li .p-tree {
+  padding: 0 !important;
+}
+
+.p-treenode {
+  padding: 0 !important;
+}
+
+.p-tree .p-tree-container .p-treenode .p-treenode-content {
+  padding: 0 !important;
+}
+
+.sidebarDetail
+  .p-tree
+  .p-tree-container
+  .p-treenode
+  .p-treenode-content
+  .p-treenode-label {
+  text-transform: uppercase;
+  font-size: 1.1rem;
+  color: #424242;
+  font-family: 'Roboto Condensed';
+  letter-spacing: 0.05rem;
+}
+.sidebarDetail .p-treenode-children .p-treenode-label {
+  text-transform: capitalize !important;
+  font-size: 1.1rem;
+  color: #424242;
+  font-family: 'Roboto Condensed';
+  letter-spacing: 0.05rem;
+}
+
+.pi-globe {
+  color: #3d99f4 !important;
+}
+/* .p-treenode-icon {
+  color: #3d99f4 !important;
+} */
+.pi-circle {
+  color: #3d99f4 !important;
+}
+
+.p-tree .p-tree-container .p-treenode .p-treenode-content .p-tree-toggler {
+  margin-right: 5px !important;
+  width: 1.5rem !important;
+  height: 1.5rem !important;
+}
+
+.sidebardetailheader {
+  font-weight: 700;
+  font-size: 16px;
+  color: #3d99f4;
+  padding: 8px;
+}
+
+.p-checkbox .p-checkbox-box {
+  width: 15px !important;
+  height: 15px !important;
+  border-radius: 3px !important;
+  margin-top: 5px !important;
+}
+
+.p-tree-toggler .p-link {
+  margin: 5px !important;
+}
+
+.p-checkbox .p-component {
+  margin: 0px !important;
+}
+
+/* pi-map */
+/* pi-images */
+/* pi-instagram */
+/* icon: 'pi pi-fw pi-map',
+icon: 'pi pi-fw pi-images',
+icon: 'pi pi-fw pi-instagram', */
+
+.alertDesign {
+  /* width: 98%; */
+  width: calc(100% - 72px);
+  position: absolute;
+  z-index: 9999;
+  height: calc(100% - 4rem);
+  overflow: hidden;
+}
+
+.pi-download {
+  cursor: pointer;
+}

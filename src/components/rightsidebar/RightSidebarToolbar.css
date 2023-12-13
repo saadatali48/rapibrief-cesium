@@ -1,0 +1,12 @@
+.toolbar-btn {
+  padding: 5px 10px 5px 10px;
+  display: flex;
+}
+.toolbar-btn svg {
+  margin: 0 auto;
+  display: block;
+}
+
+.right-sidebar .active {
+  background-color: #3d99f4;
+}

@@ -1,0 +1,19 @@
+.btn-draw {
+  background-color: transparent;
+  border-color: transparent;
+}
+
+/* .draw-components {
+  padding: 5px 10px 5px 10px;
+  display: flex;
+} */
+
+.draw-components .measure {
+  padding: 5px 10px 5px 10px;
+  display: flex;
+}
+
+.draw-components .los_container {
+  padding: 5px 10px 5px 10px;
+  display: flex;
+}

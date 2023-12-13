@@ -1,0 +1,80 @@
+.custom-button {
+  color: #fff;
+  background: #f59f50;
+  border-radius: 20px;
+  border: none;
+  font-size: 12px;
+  font-weight: 500;
+  width: 13rem;
+}
+.navbarAlertpopover::-webkit-scrollbar {
+  display: none;
+}
+.alertsdisplay {
+  margin: 0.5rem;
+  line-height: 15px;
+  font-size: 13px;
+  padding: 5px;
+  font-weight: bold;
+  color: #424242;
+  display: flex;
+  gap: 10px;
+  justify-content: space-evenly;
+  border-bottom: 1px solid #ced4da;
+}
+
+.triangle {
+  width: 0;
+  height: 0;
+  position: absolute;
+  z-index: 9999;
+  bottom: -0.1rem;
+  margin-left: 1rem;
+  border-width: 0 10px 10px 10px;
+  border-color: transparent transparent #ffffff transparent;
+  border-style: solid;
+}
+
+.dot {
+  height: 20px;
+  width: 80px;
+  background-color: green;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.navbarAlertpopover {
+  width: 17rem;
+  position: absolute;
+  z-index: 9999;
+  height: 28.5rem;
+  background: white;
+  top: 4rem;
+  border-radius: 10px;
+  overflow-y: scroll;
+}
+.alert-timestap {
+  font-weight: 500;
+  color: #878787;
+}
+.Alert-Alert {
+  margin-left: 15px;
+  font-weight: 500;
+  color: #333333;
+}
+.alert-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  gap: 30px 20px;
+  flex-direction: column;
+}
+.dot {
+  height: 30px;
+  width: 50px;
+  background-color: red;
+  border-radius: 50%;
+  display: inline-block;
+}

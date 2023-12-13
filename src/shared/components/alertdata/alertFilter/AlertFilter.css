@@ -1,0 +1,16 @@
+.Alert-al {
+    display:flex;
+    border:  1px dashed #CBCBCB;
+    background-color:#FAFAFA;
+    width:80px;
+  border-radius: 25px;
+  margin-right: 12%;
+   }
+   .AlertFilter-plusico{
+    display:flex;
+    justify-content: center;
+    margin-left: 1%;
+    font-weight: 400;
+    font-size: 12px;
+color: rgba(0, 0, 0, 0.87);
+   }

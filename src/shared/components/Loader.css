@@ -1,0 +1,21 @@
+.app-loading {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  height: calc(100vh - 62px);
+}
+
+.video-loading {
+  position: absolute;
+  top: 62px;
+  left: 72px;
+  z-index: 101;
+  height: calc(100vh - 62px);
+  width: calc(100vw - 72px);
+  overflow: hidden;
+
+  /* filter: grayscale(0.5) blur(0); */
+
+  /* background-color: 'rgba(0, 0, 0, 0.7)'; */
+  /* background-color: rgb(60, 60, 60, 0.7); */
+}

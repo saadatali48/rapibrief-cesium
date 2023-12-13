@@ -1,0 +1,46 @@
+.line-of-sight-one {
+  /* position: absolute;
+  top: 70%;
+  right: 0; */
+}
+.tootip-backdrop {
+  display: none;
+  position: absolute;
+  bottom: 0px;
+  left: 0px;
+  pointer-events: none;
+  padding: 5px;
+  background-color: black;
+  border-radius: 5px;
+  color: #ccc;
+}
+/* .line-btn-container {
+  background: rgba(26, 31, 36, 0.66);
+  border: 1px solid #848484;
+  border-radius: 4px 0px 0px 4px;
+  padding: 12px;
+} */
+.line-btn {
+  background-color: transparent;
+  border: transparent;
+  padding: 0 !important;
+  height: 17.5px;
+}
+
+.los-menu {
+  position: absolute;
+  z-index: 9999;
+  background-color: white;
+  right: 3rem;
+  display: flex;
+  border-radius: 2px;
+}
+.los-menu div {
+  padding: 5px;
+}
+.los-menu div:hover {
+  cursor: pointer;
+}
+.activeMenu {
+  background-color: #3d99f4;
+}

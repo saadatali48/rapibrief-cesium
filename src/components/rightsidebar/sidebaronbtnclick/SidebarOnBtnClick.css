@@ -1,0 +1,7 @@
+.hoverPointer:hover {
+  cursor: pointer;
+}
+.mode-style {
+  border: 4px solid #4088f4;
+  border-radius: 10px;
+}

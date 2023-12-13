@@ -1,0 +1,14 @@
+label {
+  box-sizing: border-box;
+}
+.lkjDVC {
+  height: 90px !important;
+  width: auto !important;
+  min-width: 260px !important;
+  max-width: none !important;
+  border: dashed 2px #bbbbbb !important;
+  color: #bbbbbb !important;
+}
+.dmajdp {
+  flex-flow: column;
+}

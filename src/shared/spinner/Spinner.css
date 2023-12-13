@@ -1,0 +1,10 @@
+.Spinner-Loader {
+  display: flex;
+  flex-flow: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  gap: 8px;
+  background-color: rgba(0, 0, 0, 0);
+}
