@@ -84,7 +84,7 @@ module.exports = {
   devtool: 'inline-source-map',
   devServer: {
     static: __dirname + '/public',
-    host: 'localhost',
+    host: '10.10.103.135',
     port: 3000,
     historyApiFallback: true,
     open: true,
