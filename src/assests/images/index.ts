@@ -43,6 +43,7 @@ import others3 from './others-3.svg'
 import planeModel from './3d_Models/MillitaryPlane2.glb'
 import planeModel1 from './3d_Models/MillitaryPlane3.glb'
 import heli1 from './3d_Models/heli1.glb'
+import drone from './3d_Models/drone2.glb'
 
 export {
   rightside3dicon,
@@ -87,4 +88,5 @@ export {
   planeModel,
   planeModel1,
   heli1,
+  drone,
 }
