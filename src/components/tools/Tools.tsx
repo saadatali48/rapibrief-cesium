@@ -3,6 +3,9 @@ import './Tools.css'
 import { ToolsData } from './ToolsData'
 import { useAppSelector } from '../../hooks/AppHooks'
 import {
+  BoundingSphere,
+  BoxEmitter,
+  Cartesian2,
   Cartesian3,
   Cartographic,
   ClockRange,
@@ -11,6 +14,10 @@ import {
   HorizontalOrigin,
   JulianDate,
   LinearApproximation,
+  Matrix4,
+  NearFarScalar,
+  ParticleEmitter,
+  ParticleSystem,
   PointGraphics,
   SampledPositionProperty,
   SceneMode,
@@ -26,10 +33,16 @@ import {
 import { heli1, planeModel1, drone, locationPoi } from '../../assests/images'
 import CesiumDrawer from '../../shared/components/map/cesiumDraw'
 import ColorPicker from '@nafise622/material-ui-color-picker'
+import Button from 'react-bootstrap/Button'
+import Modal from 'react-bootstrap/Modal'
+import Form from 'react-bootstrap/Form'
+
 let activeEntity: any = null
 const Tools = () => {
   const viewer = useAppSelector((store: any) => store.mapViewer.viewer)
   const [editStyle, setEditStyle] = useState(false)
+  const [show, setShow] = useState(false)
+  const [inputLabel, setInputLabel] = useState('')
 
   let handler: any
   let eventHandler: any
@@ -124,16 +137,6 @@ const Tools = () => {
         uri: modelUrl,
         minimumPixelSize: minPixelSize,
       },
-
-      //Show the path as a pink line sampled in 1 second increments.
-      // path: {
-      //   resolution: 1,
-      //   material: new PolylineGlowMaterialProperty({
-      //     glowPower: 0.1,
-      //     color: Color.YELLOW,
-      //   }),
-      //   width: 10,
-      // },
     })
     entity.position.setInterpolationOptions({
       interpolationDegree: 5,
@@ -142,8 +145,6 @@ const Tools = () => {
   }
 
   const onLeftDown = (movement: any) => {
- 
-
     if (movement.position && viewer) {
       let ellipsoid = viewer.scene.globe.ellipsoid
       let cartesian = viewer.camera.pickEllipsoid(movement.position, ellipsoid)
@@ -155,7 +156,6 @@ const Tools = () => {
         15000
       )
       pathPositions.push(newPos)
-     
     }
   }
   const onLeftDoubleClick = (movement: any, selectedItemId: number) => {
@@ -174,6 +174,7 @@ const Tools = () => {
 
   const drawPolyline = (selectedItemId) => {
     pathPositions = []
+    handler = new ScreenSpaceEventHandler(viewer.scene?.canvas)
     handler.setInputAction(function (movement: any) {
       onLeftDown(movement)
     }, ScreenSpaceEventType.LEFT_DOWN)
@@ -192,10 +193,12 @@ const Tools = () => {
     }
     drawer = new CesiumDrawer(viewer, {})
 
-
     if (drawType === 'polyline') {
       drawer.startDraw({
         type: 'polyline',
+      })
+      drawer.on('finishDraw', function (e) {
+        e.polyline.width.setValue(3)
       })
     } else if (drawType === 'rectangle') {
       drawer.startDraw({
@@ -207,6 +210,19 @@ const Tools = () => {
       })
       drawer.on('finishDraw', function (e) {
         drawer.activeEntity = e
+        handleShow()
+        activeEntity = e
+        const entityCenter = BoundingSphere.fromPoints(
+          e.polygon.hierarchy._value.positions
+        ).center
+        console.log(entityCenter)
+        e.position = entityCenter
+
+        e.height = 0
+        e.heightReference =
+          viewer.scene.mode === SceneMode.SCENE3D
+            ? HeightReference.CLAMP_TO_GROUND
+            : HeightReference.NONE
       })
     } else if (drawType === 'point') {
       const defaultPoint = new PointGraphics({
@@ -225,7 +241,7 @@ const Tools = () => {
             : HeightReference.NONE,
       })
       const label = {
-        text: 'City Name',
+        text: inputLabel,
         horizintalOrigin: HorizontalOrigin.RIGHT,
         verticalOrigin: VerticalOrigin.TOP,
       }
@@ -234,6 +250,11 @@ const Tools = () => {
         // billboard: pointIcon,
         point: defaultPoint,
         label: label,
+      })
+      drawer.on('finishDraw', function (e) {
+        handleShow()
+        activeEntity = e
+        //  drawer.activeEntity = e
       })
     }
   }
@@ -260,6 +281,54 @@ const Tools = () => {
     if (activeEntity && defined(activeEntity.polygon)) {
       activeEntity.polygon.material = Color.fromCssColorString(selectedColor)
     }
+  }
+  const handleClose = () => {
+    setShow(false)
+    setInputLabel(inputLabel)
+    if (inputLabel && activeEntity) {
+      // const entityLabel = new Label()
+      // entityLabel.text = inputLabel
+      activeEntity.label = {
+        text: inputLabel,
+        show: true,
+        horizintalOrigin: HorizontalOrigin.RIGHT,
+        verticalOrigin: VerticalOrigin.TOP,
+        scaleByDistance: new NearFarScalar(1.5e2, 1.5, 8.0e6, 0.0),
+        pixelOffset: new Cartesian2(5.0, 0.0),
+      }
+      console.log(activeEntity)
+
+      setInputLabel('')
+    }
+  }
+  const handleShow = () => setShow(true)
+
+  const minimumExplosionSize = 30.0
+  const maximumExplosionSize = 100.0
+  const particlePixelSize = new Cartesian2(7.0, 7.0)
+  const burstSize = 400.0
+  const lifetime = 10.0
+  const numberOfFireworks = 20.0
+  const emitterModelMatrixScratch = new Matrix4()
+
+  const addExplosion = (offset, color, bursts) => {
+    /*     const particleSystem = viewer.scene.primitives.add(
+      new ParticleSystem({
+        image: '../../SampleData/smoke.png',
+        imageSize: new Cartesian2(20, 20),
+        startScale: 1.0,
+        endScale: 4.0,
+        particleLife: 1.0,
+        speed: 5.0,
+        emitter: new BoxEmitter(new Cartesian3(0.5, 0.5, 0.5)),
+        emissionRate: 5.0,
+        modelMatrix: entity.computeModelMatrix(
+          viewer.clock.startTime,
+          new Matrix4()
+        ),
+        lifetime: 16.0,
+      })
+    ) */
   }
 
   return (
@@ -313,6 +382,37 @@ const Tools = () => {
           />
         </div>
       ) : null}
+      <Modal show={show} onHide={handleClose} style={{ color: 'black' }}>
+        <Modal.Header closeButton>
+          <Modal.Title>Add Label</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group className="mb-3" controlId="exampleForm.ControlInput1">
+              <Form.Label>Label</Form.Label>
+              <Form.Control
+                type="text"
+                value={inputLabel}
+                onChange={(e) => setInputLabel(e.target.value)}
+                placeholder="Saudi Arab"
+              />
+            </Form.Group>
+          </Form>
+          {/* <input
+            type="text"
+            value={inputLabel}
+            onChange={(e) => setInputLabel(e.target.value)}
+          /> */}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleClose}>
+            Close
+          </Button>
+          <Button variant="primary" onClick={handleClose}>
+            Save Changes
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </>
   )
 }
