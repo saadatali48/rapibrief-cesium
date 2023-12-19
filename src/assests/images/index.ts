@@ -39,12 +39,15 @@ import martime3 from './maritime-3.svg'
 import others1 from './others-1.svg'
 import others2 from './others-2.svg'
 import others3 from './others-3.svg'
+// import satelliteIcon from './satelliteIcon.png'
 
 import planeModel from './3d_Models/MillitaryPlane2.glb'
 import planeModel1 from './3d_Models/MillitaryPlane3.glb'
 import heli1 from './3d_Models/heli1.glb'
 import drone from './3d_Models/drone2.glb'
-
+import missile from './3d_Models/missile.glb'
+import ship from './3d_Models/ship.glb'
+import satelliteDataFile from './satellite_data.txt'
 export {
   rightside3dicon,
   terrain,
@@ -89,4 +92,7 @@ export {
   planeModel1,
   heli1,
   drone,
+  missile,
+  satelliteDataFile,
+  ship,
 }

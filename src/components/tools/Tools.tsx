@@ -10,6 +10,8 @@ import {
   Cartographic,
   ClockRange,
   Color,
+  CustomDataSource,
+  Entity,
   HeightReference,
   HorizontalOrigin,
   JulianDate,
@@ -30,7 +32,17 @@ import {
   Math as cesiumMath,
   defined,
 } from 'cesium'
-import { heli1, planeModel1, drone, locationPoi } from '../../assests/images'
+import * as satellite from 'satellite.js'
+import {
+  heli1,
+  planeModel1,
+  drone,
+  locationPoi,
+  missile,
+  satelliteDataFile,
+  satelliteIcon,
+  ship,
+} from '../../assests/images'
 import CesiumDrawer from '../../shared/components/map/cesiumDraw'
 import ColorPicker from '@nafise622/material-ui-color-picker'
 import Button from 'react-bootstrap/Button'
@@ -40,6 +52,8 @@ import Form from 'react-bootstrap/Form'
 let activeEntity: any = null
 const Tools = () => {
   const viewer = useAppSelector((store: any) => store.mapViewer.viewer)
+  const satelliteEntityCollection = new CustomDataSource('satellite_data')
+
   const [editStyle, setEditStyle] = useState(false)
   const [show, setShow] = useState(false)
   const [inputLabel, setInputLabel] = useState('')
@@ -108,7 +122,7 @@ const Tools = () => {
     viewer.clock.startTime = start.clone()
     viewer.clock.stopTime = stop.clone()
     viewer.clock.currentTime = start.clone()
-    viewer.clock.clockRange = ClockRange.LOOP_STOP //Loop at the end
+    viewer.clock.clockRange = ClockRange.UNBOUNDED //Loop at the end
     viewer.clock.multiplier = 5
     viewer.clock.shouldAnimate = true
 
@@ -119,12 +133,12 @@ const Tools = () => {
     //Actually create the entity
     const entity = viewer.entities.add({
       //Set the entity availability to the same interval as the simulation time.
-      availability: new TimeIntervalCollection([
+      /* availability: new TimeIntervalCollection([
         new TimeInterval({
           start: start,
           stop: stop,
         }),
-      ]),
+      ]), */
 
       //Use our computed positions
       position: position,
@@ -142,20 +156,40 @@ const Tools = () => {
       interpolationDegree: 5,
       interpolationAlgorithm: LinearApproximation,
     })
+    viewer.clock.onTick.addEventListener(function (clock) {
+      // console.log(clock)
+      // console.log(viewer.clock.currentTime)
+      // if (s < 100) {
+      //   console.log(viewer.clock.currentTime)
+      // } else {
+      //   viewer.clock.canAnimate = true
+      //   viewer.clock.shouldAnimate = true
+      // }
+      // s++
+    })
   }
 
-  const onLeftDown = (movement: any) => {
+  const onLeftDown = (movement: any, selectedItemId) => {
     if (movement.position && viewer) {
       let ellipsoid = viewer.scene.globe.ellipsoid
       let cartesian = viewer.camera.pickEllipsoid(movement.position, ellipsoid)
       const cartographicPos = Cartographic.fromCartesian(cartesian)
       cartographicPos.height = 300
-      const newPos = Cartesian3.fromRadians(
-        cartographicPos.longitude,
-        cartographicPos.latitude,
-        15000
-      )
-      pathPositions.push(newPos)
+      if (selectedItemId === 16) {
+        const newPos = Cartesian3.fromRadians(
+          cartographicPos.longitude,
+          cartographicPos.latitude,
+          0
+        )
+        pathPositions.push(newPos)
+      } else {
+        const newPos = Cartesian3.fromRadians(
+          cartographicPos.longitude,
+          cartographicPos.latitude,
+          15000
+        )
+        pathPositions.push(newPos)
+      }
     }
   }
   const onLeftDoubleClick = (movement: any, selectedItemId: number) => {
@@ -166,6 +200,10 @@ const Tools = () => {
         addFlyingEntity(heli1, 128)
       } else if (selectedItemId === 10) {
         addFlyingEntity(drone, 128)
+      } else if (selectedItemId === 19) {
+        addFlyingEntity(missile, 128)
+      } else if (selectedItemId === 16) {
+        addFlyingEntity(ship, 128)
       }
       handler.removeInputAction(ScreenSpaceEventType.LEFT_DOWN)
       handler.removeInputAction(ScreenSpaceEventType.LEFT_DOUBLE_CLICK)
@@ -176,7 +214,7 @@ const Tools = () => {
     pathPositions = []
     handler = new ScreenSpaceEventHandler(viewer.scene?.canvas)
     handler.setInputAction(function (movement: any) {
-      onLeftDown(movement)
+      onLeftDown(movement, selectedItemId)
     }, ScreenSpaceEventType.LEFT_DOWN)
     handler.setInputAction(function (movement: any) {
       if (viewer.scene?.mode !== SceneMode.MORPHING) {
@@ -258,12 +296,15 @@ const Tools = () => {
       })
     }
   }
+  let showSatelliteFlag = false
 
   const handleIconClick = (selectedItemId: number) => {
     if (
       selectedItemId === 10 ||
       selectedItemId === 11 ||
-      selectedItemId === 12
+      selectedItemId === 12 ||
+      selectedItemId === 19 ||
+      selectedItemId === 16
     ) {
       drawPolyline(selectedItemId)
     }
@@ -275,6 +316,12 @@ const Tools = () => {
       drawShape('polygon')
     } else if (selectedItemId === 5) {
       drawShape('point')
+    } else if (selectedItemId === 20) {
+      if (!showSatelliteFlag) {
+        addSatellitesToMap()
+      } else {
+        removeSatellitesFromMap()
+      }
     }
   }
   const setEntityColor = (selectedColor: any) => {
@@ -329,6 +376,87 @@ const Tools = () => {
         lifetime: 16.0,
       })
     ) */
+  }
+  function createSatelliteEntities(data, name) {
+    const totalSeconds = 600
+    const timestepInSeconds = 1
+    const start = JulianDate.fromDate(new Date())
+    const stop = JulianDate.addSeconds(start, totalSeconds, new JulianDate())
+    viewer.clock.startTime = start.clone()
+    viewer.clock.stopTime = stop.clone()
+    viewer.clock.currentTime = start.clone()
+    viewer.timeline.zoomTo(start, stop)
+
+    viewer.clock.multiplier = 1
+    viewer.clock.clockRange = ClockRange.LOOP_STOP
+    const positionsOverTime = new SampledPositionProperty()
+    for (let i = 0; i < totalSeconds; i += timestepInSeconds) {
+      const time = JulianDate.addSeconds(start, i, new JulianDate())
+      const jsDate = JulianDate.toDate(time)
+      const positionAndVelocity: any = satellite.propagate(data, jsDate)
+      const gmst = satellite.gstime(jsDate)
+      const p = satellite.eciToGeodetic(positionAndVelocity.position, gmst)
+      const position = Cartesian3.fromRadians(
+        p.longitude,
+        p.latitude,
+        p.height * 1000
+      )
+      positionsOverTime.addSample(time, position)
+    }
+    let entity = new Entity({
+      position: positionsOverTime,
+      name: name,
+      //@ts-expect-error
+      type: 'satellite',
+
+      billboard: {
+        image: satelliteIcon,
+        scale: 0.5,
+      },
+      label: {
+        text: name,
+        font: '12px sans-serif',
+        horizontalOrigin: HorizontalOrigin.CENTER,
+        verticalOrigin: VerticalOrigin.CENTER,
+        pixelOffset: new Cartesian2(0, 10),
+        outlineColor: Color.BLACK,
+        outlineWidth: 1,
+        scaleByDistance: new NearFarScalar(1.5e2, 2, 8.0e6, 0.0),
+      },
+    })
+    //@ts-expect-error
+    entity.satProperties = {
+      name: name,
+      satnum: data.satnum,
+      epoch: data.epochdays,
+    }
+    satelliteEntityCollection.entities.add(entity)
+    viewer.clock.shouldAnimate = true
+  }
+
+  const addSatellitesToMap = () => {
+    showSatelliteFlag = true
+    viewer.dataSources.add(satelliteEntityCollection)
+    fetch(satelliteDataFile)
+      .then((res) => res.text())
+      .then((parsedText) => {
+        var rowsList = parsedText.split('\n')
+        for (let i = 0; i < rowsList.length; i += 3) {
+          let satrec = satellite.twoline2satrec(
+            rowsList[i + 1],
+            rowsList[i + 2]
+          )
+          createSatelliteEntities(satrec, rowsList[i])
+        }
+      })
+  }
+
+  const removeSatellitesFromMap = () => {
+    viewer?.dataSources?._dataSources?.forEach((ds) => {
+      if (ds.name == 'satellite_data') {
+        ds.entities.removeAll()
+      }
+    })
   }
 
   return (

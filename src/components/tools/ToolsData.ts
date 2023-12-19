@@ -71,7 +71,7 @@ export const ToolsData = [
     groupName: 'Maritime Vessels',
     groupId: 6,
     children: [
-      { id: 16, title: 'Tools', icon: maritime1 },
+      { id: 16, title: 'Ship', icon: maritime1 },
       { id: 17, title: 'Tools', icon: maritime2 },
       { id: 18, title: 'Tools', icon: martime3 },
     ],
@@ -80,7 +80,7 @@ export const ToolsData = [
     groupName: 'Other',
     groupId: 7,
     children: [
-      { id: 19, title: 'Tools', icon: others1 },
+      { id: 19, title: 'Missile', icon: others1 },
       { id: 20, title: 'Tools', icon: others2 },
       { id: 21, title: 'Tools', icon: others3 },
     ],
