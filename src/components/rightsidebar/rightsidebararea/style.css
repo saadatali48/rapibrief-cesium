@@ -1,3 +1,9 @@
 .on-off {
   margin: 10px 0;
 }
+.sd-body-1 ul li {
+  list-style: none;
+  margin-bottom: 8px;
+  color: black;
+  height: 2rem;
+}

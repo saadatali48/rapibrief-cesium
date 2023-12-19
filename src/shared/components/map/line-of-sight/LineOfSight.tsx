@@ -322,7 +322,11 @@ const LineOfSight = ({ activeMenu, handleLosActive, setLosActive }) => {
           <i className="fa  fa-lines-leaning"></i>
         </Button>
         {/* </div> */}
-        <div ref={losRef} className="los-menu" style={{ display: 'none' }}>
+        <div
+          ref={losRef}
+          className="los-menu"
+          style={{ display: 'none', color: 'black' }}
+        >
           <div
             className="m-1"
             title="Add Line of Sight "

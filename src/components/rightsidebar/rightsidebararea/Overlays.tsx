@@ -143,7 +143,7 @@ const OnBtnClickOverlay = (props) => {
         ></button>
       </div>
       <hr />
-      <div className="sd-body">
+      <div className="sd-body-1">
         <DragDrop />
         <div className="on-off">
           <span>Overlays</span>

@@ -22,7 +22,7 @@ const DrawIcons = (props: { isOpen: any; isOverlay: any }) => {
   }
   return (
     <div className={`draw ${isOpen || isOverlay == true ? 'active' : ''}`}>
-      <div className="draw-components">
+      <div className="draw-components" style={{ color: 'black' }}>
         <MeasureTools
           activeMenu={measureActive}
           handleMeasureActive={handleMeasureActive}
