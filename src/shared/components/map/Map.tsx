@@ -37,7 +37,7 @@ const MapComponent = () => {
         imageryProvider: imageryBasemap,
         terrainProvider: createWorldTerrain(),
         animation: true,
-        geocoder: false,
+        geocoder: true,
         baseLayerPicker: false,
         timeline: true,
         fullscreenButton: false,

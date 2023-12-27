@@ -17,6 +17,7 @@ import {
   JulianDate,
   LinearApproximation,
   Matrix4,
+  Model,
   NearFarScalar,
   ParticleEmitter,
   ParticleSystem,
@@ -31,6 +32,7 @@ import {
   VerticalOrigin,
   Math as cesiumMath,
   defined,
+  sampleTerrainMostDetailed,
 } from 'cesium'
 import * as satellite from 'satellite.js'
 import {
@@ -43,6 +45,10 @@ import {
   satelliteIcon,
   ship,
   explosion,
+  locationTarget,
+  soldierModel,
+  miltVehModel,
+  tank,
 } from '../../assests/images'
 import CesiumDrawer from '../../shared/components/map/cesiumDraw'
 import ColorPicker from '@nafise622/material-ui-color-picker'
@@ -176,7 +182,9 @@ const Tools = () => {
       let cartesian = viewer.camera.pickEllipsoid(movement.position, ellipsoid)
       const cartographicPos = Cartographic.fromCartesian(cartesian)
       cartographicPos.height = 300
-      if (selectedItemId === 16) {
+      if (selectedItemId === 16 || selectedItemId === 13 || selectedItemId === 14) {
+     
+       
         const newPos = Cartesian3.fromRadians(
           cartographicPos.longitude,
           cartographicPos.latitude,
@@ -205,6 +213,15 @@ const Tools = () => {
         addFlyingEntity(missile, 128)
       } else if (selectedItemId === 16) {
         addFlyingEntity(ship, 128)
+      }
+      else if (selectedItemId === 16) {
+        addFlyingEntity(ship, 128)
+      }
+      else if (selectedItemId === 13) {
+        addFlyingEntity(miltVehModel, 128)
+      }
+      else if (selectedItemId === 14) {
+        addFlyingEntity(tank, 128)
       }
       handler.removeInputAction(ScreenSpaceEventType.LEFT_DOWN)
       handler.removeInputAction(ScreenSpaceEventType.LEFT_DOUBLE_CLICK)
@@ -291,8 +308,7 @@ const Tools = () => {
         activeEntity = e
         //  drawer.activeEntity = e
       })
-    }
-    else if (drawType === 'explosion') {
+    } else if (drawType === 'explosion') {
       const defaultPoint = new PointGraphics({
         show: true,
         pixelSize: 10,
@@ -315,8 +331,8 @@ const Tools = () => {
           image: explosion,
           // scale: 0.5,
           width: 50,
-          height: 50
-         },
+          height: 50,
+        },
         // point: defaultPoint,
         // label: label,
       })
@@ -325,19 +341,7 @@ const Tools = () => {
         activeEntity = e
         //  drawer.activeEntity = e
       })
-    }
-    else if (drawType === 'target') {
-      const defaultPoint = new PointGraphics({
-        show: true,
-        pixelSize: 10,
-        color: Color.RED,
-        outlineColor: Color.WHITE,
-        outlineWidth: 2,
-        heightReference:
-          viewer.scene.mode === SceneMode.SCENE3D
-            ? HeightReference.CLAMP_TO_GROUND
-            : HeightReference.NONE,
-      })
+    } else if (drawType === 'locationTarget') {
       const label = {
         text: inputLabel,
         horizintalOrigin: HorizontalOrigin.RIGHT,
@@ -345,8 +349,10 @@ const Tools = () => {
       }
       drawer.startDraw({
         type: 'point',
-        // billboard: pointIcon,
-        point: defaultPoint,
+        billboard: {
+          image: locationTarget,
+        },
+        //point: defaultPoint,
         label: label,
       })
       drawer.on('finishDraw', function (e) {
@@ -364,7 +370,9 @@ const Tools = () => {
       selectedItemId === 11 ||
       selectedItemId === 12 ||
       selectedItemId === 19 ||
-      selectedItemId === 16
+      selectedItemId === 16 ||
+      selectedItemId === 13 ||
+      selectedItemId === 14
     ) {
       drawPolyline(selectedItemId)
     }
@@ -376,10 +384,18 @@ const Tools = () => {
       drawShape('polygon')
     } else if (selectedItemId === 5) {
       drawShape('point')
-    }
-    else if (selectedItemId === 21) {
+    } else if (selectedItemId === 21) {
       drawShape('explosion')
+    } else if (selectedItemId === 4) {
+      drawShape('locationTarget')
+    } else if (selectedItemId === 7) {
+      createEntityOnClick(soldierModel)
     }
+    // else if (selectedItemId === 13) {
+    //   createEntityOnClick(miltVehModel)
+    // } 
+    
+    
     else if (selectedItemId === 20) {
       if (!showSatelliteFlag) {
         addSatellitesToMap()
@@ -521,6 +537,49 @@ const Tools = () => {
         ds.entities.removeAll()
       }
     })
+  }
+
+  const createEntityOnClick = (entityUri) => {
+    const eventHandler1 = new ScreenSpaceEventHandler(viewer.scene?.canvas)
+    eventHandler1.setInputAction(function (movement: any) {
+      if (movement.position) {
+        const pickedPosition = viewer.camera.pickEllipsoid(
+          movement.position,
+          viewer.scene.globe.ellipsoid
+        )
+         const cartographicPos = Cartographic.fromCartesian(pickedPosition)
+        const positionsElevations = sampleTerrainMostDetailed(
+          viewer?.terrainProvider,
+          [cartographicPos],
+        );
+        Promise.resolve(positionsElevations).then(function (updatedPositions) {
+          const soldEnt = new Entity({
+            model: {
+              uri: entityUri,
+              minimumPixelSize: 128,
+              maximumScale:10,
+            },
+           
+            position: Cartesian3.fromRadians(
+              cartographicPos.longitude,
+              cartographicPos.latitude,
+              updatedPositions[0].height
+            ),
+            // heightReference: HeightReference.CLAMP_TO_GROUND,
+          })
+          viewer.entities.add(soldEnt)
+          viewer.zoomTo(soldEnt)
+      });
+        
+
+   
+        //eventHandler1.destroy()
+      }
+    }, ScreenSpaceEventType.LEFT_DOWN)
+
+    eventHandler1.setInputAction(function (movement: any) { 
+      eventHandler1.destroy()
+    }, ScreenSpaceEventType.LEFT_DOUBLE_CLICK)
   }
 
   return (

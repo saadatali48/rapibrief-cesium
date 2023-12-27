@@ -49,7 +49,9 @@ import missile from './3d_Models/missile.glb'
 import ship from './3d_Models/ship.glb'
 import satelliteDataFile from './satellite_data.txt'
 export { default as explosion } from './gif/explosion1.gif'
-
+export { default as soldierModel } from './3d_Models/soldier.glb'
+export { default as miltVehModel } from './3d_Models/ground-veh.glb'
+export  {default as tank} from './3d_Models/tank.glb'
 
 export {
   rightside3dicon,
