@@ -42,7 +42,7 @@ import {
   satelliteDataFile,
   satelliteIcon,
   ship,
-  explosion
+  explosion,
 } from '../../assests/images'
 import CesiumDrawer from '../../shared/components/map/cesiumDraw'
 import ColorPicker from '@nafise622/material-ui-color-picker'

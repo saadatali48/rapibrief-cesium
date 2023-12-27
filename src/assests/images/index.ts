@@ -48,7 +48,8 @@ import drone from './3d_Models/drone2.glb'
 import missile from './3d_Models/missile.glb'
 import ship from './3d_Models/ship.glb'
 import satelliteDataFile from './satellite_data.txt'
-export {default as explosion} from './gif/explosion1.gif'
+export { default as explosion } from './gif/explosion1.gif'
+
 
 export {
   rightside3dicon,

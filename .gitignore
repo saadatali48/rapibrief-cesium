@@ -14,7 +14,7 @@
 
 # misc
 .DS_Store
-webpack.config.js
+.config.js
 
 
 .env.test.local
