@@ -42,6 +42,7 @@ import {
   satelliteDataFile,
   satelliteIcon,
   ship,
+  explosion
 } from '../../assests/images'
 import CesiumDrawer from '../../shared/components/map/cesiumDraw'
 import ColorPicker from '@nafise622/material-ui-color-picker'
@@ -269,10 +270,69 @@ const Tools = () => {
         color: Color.RED,
         outlineColor: Color.WHITE,
         outlineWidth: 2,
-
-        //Turn off the depth detection of points to prevent being blocked by elevation
-        // disableDepthTestDistance: Number.MAX_SAFE_INTEGER,
-        // Altitude reference, always stick to the ground in 3D, and close in 2D.
+        heightReference:
+          viewer.scene.mode === SceneMode.SCENE3D
+            ? HeightReference.CLAMP_TO_GROUND
+            : HeightReference.NONE,
+      })
+      const label = {
+        text: inputLabel,
+        horizintalOrigin: HorizontalOrigin.RIGHT,
+        verticalOrigin: VerticalOrigin.TOP,
+      }
+      drawer.startDraw({
+        type: 'point',
+        // billboard: pointIcon,
+        point: defaultPoint,
+        label: label,
+      })
+      drawer.on('finishDraw', function (e) {
+        handleShow()
+        activeEntity = e
+        //  drawer.activeEntity = e
+      })
+    }
+    else if (drawType === 'explosion') {
+      const defaultPoint = new PointGraphics({
+        show: true,
+        pixelSize: 10,
+        color: Color.RED,
+        outlineColor: Color.WHITE,
+        outlineWidth: 2,
+        heightReference:
+          viewer.scene.mode === SceneMode.SCENE3D
+            ? HeightReference.CLAMP_TO_GROUND
+            : HeightReference.NONE,
+      })
+      const label = {
+        text: inputLabel,
+        horizintalOrigin: HorizontalOrigin.RIGHT,
+        verticalOrigin: VerticalOrigin.TOP,
+      }
+      drawer.startDraw({
+        type: 'point',
+        billboard: {
+          image: explosion,
+          // scale: 0.5,
+          width: 50,
+          height: 50
+         },
+        // point: defaultPoint,
+        // label: label,
+      })
+      drawer.on('finishDraw', function (e) {
+        //  handleShow()
+        activeEntity = e
+        //  drawer.activeEntity = e
+      })
+    }
+    else if (drawType === 'target') {
+      const defaultPoint = new PointGraphics({
+        show: true,
+        pixelSize: 10,
+        color: Color.RED,
+        outlineColor: Color.WHITE,
+        outlineWidth: 2,
         heightReference:
           viewer.scene.mode === SceneMode.SCENE3D
             ? HeightReference.CLAMP_TO_GROUND
@@ -316,7 +376,11 @@ const Tools = () => {
       drawShape('polygon')
     } else if (selectedItemId === 5) {
       drawShape('point')
-    } else if (selectedItemId === 20) {
+    }
+    else if (selectedItemId === 21) {
+      drawShape('explosion')
+    }
+    else if (selectedItemId === 20) {
       if (!showSatelliteFlag) {
         addSatellitesToMap()
       } else {
