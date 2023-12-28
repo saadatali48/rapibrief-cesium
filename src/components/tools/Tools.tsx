@@ -105,15 +105,15 @@ const Tools = () => {
       const time = JulianDate.addSeconds(start, i * 10, new JulianDate())
       times.push(time)
       property.addSample(time, pathPositions[i])
-      viewer.entities.add({
-        position: pathPositions[i],
-        point: {
-          pixelSize: 8,
-          color: Color.TRANSPARENT,
-          outlineColor: Color.YELLOW,
-          outlineWidth: 3,
-        },
-      })
+      // viewer.entities.add({
+      //   position: pathPositions[i],
+      //   point: {
+      //     pixelSize: 8,
+      //     color: Color.TRANSPARENT,
+      //     outlineColor: Color.YELLOW,
+      //     outlineWidth: 3,
+      //   },
+      // })
     }
 
     return property
