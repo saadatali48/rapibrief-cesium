@@ -55,6 +55,9 @@ export { default as satellitePicture } from './Satellite-Picture.png'
 export { default as airTemperature } from './Air-Temperature.png'
 export { default as precipitation } from './Precipitation.png'
 export { default as appLogo } from './FoxMaps-Logo-Horizontal.svg'
+export { default as soldierModel } from './3d_Models/soldier.glb'
+export { default as miltVehModel } from './3d_Models/ground-veh.glb'
+export { default as tank } from './3d_Models/tank.glb'
 
 export {
   rightside3dicon,
