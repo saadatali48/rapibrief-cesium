@@ -27,20 +27,22 @@ export const ToolsData = [
     groupId: 1,
     children: [
       { id: 1, title: 'Tools', icon: lineDraw },
-      { id: 2, title: 'Tools', icon: drawRectangle },
+      // { id: 2, title: 'Tools', icon: drawRectangle },
       { id: 3, title: 'Tools', icon: drawPolygon },
+
+      { id: 5, title: 'Tools', icon: locationPoi },
     ],
   },
-  {
+  /*  {
     groupName: 'Locations',
     groupId: 2,
     children: [
-      { id: 4, title: 'Tools', icon: locationTarget },
-      { id: 5, title: 'Tools', icon: locationPoi },
-      { id: 6, title: 'Tools', icon: locationGlobe },
+      // { id: 4, title: 'Tools', icon: locationTarget },
+      // { id: 5, title: 'Tools', icon: locationPoi },
+      // { id: 6, title: 'Tools', icon: locationGlobe },
     ],
-  },
-  {
+  }, */
+  /*  {
     groupName: 'Soldiers',
     groupId: 3,
     children: [
@@ -48,7 +50,7 @@ export const ToolsData = [
       { id: 8, title: 'Tools', icon: soldiers2 },
       { id: 9, title: 'Tools', icon: soldiers3 },
     ],
-  },
+  }, */
   {
     groupName: 'Aircrafts',
     groupId: 4,
@@ -59,12 +61,13 @@ export const ToolsData = [
     ],
   },
   {
-    groupName: 'Millitary Vehicles',
+    groupName: 'Land Assets',
     groupId: 5,
     children: [
       { id: 13, title: 'Tools', icon: millitaryVehicles1 },
       { id: 14, title: 'Tools', icon: millitaryVehicles2 },
-      { id: 15, title: 'Tools', icon: millitaryVehicles3 },
+      { id: 7, title: 'Tools', icon: soldiers1 },
+      // { id: 15, title: 'Tools', icon: millitaryVehicles3 },
     ],
   },
   {
@@ -81,7 +84,8 @@ export const ToolsData = [
     groupId: 7,
     children: [
       { id: 19, title: 'Missile', icon: others1 },
-      { id: 20, title: 'Tools', icon: others2 },
+      // { id: 20, title: 'Tools', icon: others2 },
+      { id: 4, title: 'Tools', icon: locationTarget },
       { id: 21, title: 'Tools', icon: others3 },
     ],
   },

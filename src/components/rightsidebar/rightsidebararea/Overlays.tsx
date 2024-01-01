@@ -1,12 +1,38 @@
-import { UrlTemplateImageryProvider } from 'cesium'
+import {
+  Cartesian2,
+  Cartesian3,
+  ClockRange,
+  Color,
+  CustomDataSource,
+  Entity,
+  HorizontalOrigin,
+  JulianDate,
+  NearFarScalar,
+  SampledPositionProperty,
+  UrlTemplateImageryProvider,
+  VerticalOrigin,
+  Viewer,
+} from 'cesium'
 import React, { useState } from 'react'
 import { useAppSelector } from '../../../hooks/AppHooks'
 import DragDrop from '../../dragdrop/DrapDrop'
+import * as satelliteLib from 'satellite.js'
 import './style.css'
+import {
+  satelliteIcon,
+  satelliteDataFile,
+  windStream,
+  surfaceTemperature,
+  airTemperature,
+  precipitation,
+  satellitePicture,
+} from '../../../assests/images'
 
 const OnBtnClickOverlay = (props) => {
   const mapState = useAppSelector((state) => state.mapViewer)
-  const weatherData = useAppSelector((state) => state.weatherPicture)
+  // const weatherData = useAppSelector((state) => state.weatherPicture)
+
+  const satelliteEntityCollection = new CustomDataSource('satellite_data')
 
   const [nauticalChartLayer]: any = useState(
     new UrlTemplateImageryProvider({
@@ -120,6 +146,98 @@ const OnBtnClickOverlay = (props) => {
       })
     }
   }
+  function createSatelliteEntities(data, name) {
+    const viewer = mapState.viewer
+    const totalSeconds = 600
+    const timestepInSeconds = 1
+    const start = JulianDate.fromDate(new Date())
+    const stop = JulianDate.addSeconds(start, totalSeconds, new JulianDate())
+    viewer.clock.startTime = start.clone()
+    viewer.clock.stopTime = stop.clone()
+    viewer.clock.currentTime = start.clone()
+    viewer.timeline.zoomTo(start, stop)
+
+    viewer.clock.multiplier = 1
+    viewer.clock.clockRange = ClockRange.LOOP_STOP
+    const positionsOverTime = new SampledPositionProperty()
+    for (let i = 0; i < totalSeconds; i += timestepInSeconds) {
+      const time = JulianDate.addSeconds(start, i, new JulianDate())
+      const jsDate = JulianDate.toDate(time)
+      const positionAndVelocity: any = satelliteLib.propagate(data, jsDate)
+      const gmst = satelliteLib.gstime(jsDate)
+      const p = satelliteLib.eciToGeodetic(positionAndVelocity.position, gmst)
+      const position = Cartesian3.fromRadians(
+        p.longitude,
+        p.latitude,
+        p.height * 1000
+      )
+      positionsOverTime.addSample(time, position)
+    }
+    let entity = new Entity({
+      position: positionsOverTime,
+      name: name,
+      //@ts-expect-error
+      type: 'satellite',
+
+      billboard: {
+        image: satelliteIcon,
+        scale: 0.5,
+      },
+      label: {
+        text: name,
+        font: '12px sans-serif',
+        horizontalOrigin: HorizontalOrigin.CENTER,
+        verticalOrigin: VerticalOrigin.CENTER,
+        pixelOffset: new Cartesian2(0, 10),
+        outlineColor: Color.BLACK,
+        outlineWidth: 1,
+        scaleByDistance: new NearFarScalar(1.5e2, 2, 8.0e6, 0.0),
+      },
+    })
+    //@ts-expect-error
+    entity.satProperties = {
+      name: name,
+      satnum: data.satnum,
+      epoch: data.epochdays,
+    }
+    satelliteEntityCollection.entities.add(entity)
+    viewer.clock.shouldAnimate = true
+  }
+
+  const addSatellitesToMap = () => {
+    const viewer = mapState.viewer
+    viewer.dataSources.add(satelliteEntityCollection)
+    fetch(satelliteDataFile)
+      .then((res) => res.text())
+      .then((parsedText) => {
+        var rowsList = parsedText.split('\n')
+        for (let i = 0; i < rowsList.length; i += 3) {
+          let satrec = satelliteLib.twoline2satrec(
+            rowsList[i + 1],
+            rowsList[i + 2]
+          )
+          createSatelliteEntities(satrec, rowsList[i])
+        }
+      })
+  }
+
+  const removeSatellitesFromMap = () => {
+    const viewer: any = mapState.viewer
+    viewer?.dataSources?._dataSources?.forEach((ds) => {
+      if (ds.name == 'satellite_data') {
+        ds.entities.removeAll()
+        viewer.dataSources.remove(ds)
+      }
+    })
+  }
+
+  const toggleSatellitePicture = (e) => {
+    if (e.target.checked) {
+      addSatellitesToMap()
+    } else {
+      removeSatellitesFromMap()
+    }
+  }
 
   const {
     isOverlay,
@@ -160,21 +278,6 @@ const OnBtnClickOverlay = (props) => {
         <hr className="hr" />
         <p>Select overlays and turn on to view it</p>
         <ul>
-          {/* <li className=" d-flex ">
-            <input
-              type="checkbox"
-              className="form-check-input"
-              onChange={toggleNauticalCharts}
-            />
-            <img
-              className="ms-2 me-2"
-              src={twodside}
-              alt="Nautical Charts"
-              width="20%"
-              // height="40%"
-            />
-            <span>Nautical Charts</span>
-          </li> */}
           <li className=" d-flex ">
             <input
               type="checkbox"
@@ -183,7 +286,7 @@ const OnBtnClickOverlay = (props) => {
             />
             <img
               className="ms-2 me-2"
-              src={twodside}
+              src={surfaceTemperature}
               alt="Nautical Charts"
               width="20%"
               // height="40%"
@@ -198,8 +301,8 @@ const OnBtnClickOverlay = (props) => {
             />
             <img
               className="ms-2 me-2"
-              src={twodside}
-              alt="Nautical Charts"
+              src={windStream}
+              alt="Wind Stream"
               width="20%"
               // height="40%"
             />
@@ -213,8 +316,8 @@ const OnBtnClickOverlay = (props) => {
             />
             <img
               className="ms-2 me-2"
-              src={twodside}
-              alt="Nautical Charts"
+              src={airTemperature}
+              alt="Air Temperature"
               width="20%"
               // height="40%"
             />
@@ -228,12 +331,27 @@ const OnBtnClickOverlay = (props) => {
             />
             <img
               className="ms-2 me-2"
-              src={twodside}
-              alt="Nautical Charts"
+              src={precipitation}
+              alt="Precipitation"
               width="20%"
               // height="40%"
             />
             <span>Precipitation</span>
+          </li>
+          <li className=" d-flex ">
+            <input
+              type="checkbox"
+              className="form-check-input"
+              onChange={toggleSatellitePicture}
+            />
+            <img
+              className="ms-2 me-2"
+              src={satellitePicture}
+              alt="Satellite Picture"
+              width="20%"
+              // height="40%"
+            />
+            <span>Satellite Picture</span>
           </li>
           {/* <li className="d-flex justify-content-between">
             <input type="checkbox" className="form-check-input" />

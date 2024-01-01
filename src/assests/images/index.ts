@@ -49,7 +49,12 @@ import missile from './3d_Models/missile.glb'
 import ship from './3d_Models/ship.glb'
 import satelliteDataFile from './satellite_data.txt'
 export { default as explosion } from './gif/explosion1.gif'
-
+export { default as windStream } from './Wind-Stream.png'
+export { default as surfaceTemperature } from './Surface-Temperature.png'
+export { default as satellitePicture } from './Satellite-Picture.png'
+export { default as airTemperature } from './Air-Temperature.png'
+export { default as precipitation } from './Precipitation.png'
+export { default as appLogo } from './FoxMaps-Logo-Horizontal.svg'
 
 export {
   rightside3dicon,

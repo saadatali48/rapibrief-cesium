@@ -32,15 +32,15 @@ import {
   Math as cesiumMath,
   defined,
 } from 'cesium'
-import * as satellite from 'satellite.js'
+
 import {
   heli1,
   planeModel1,
   drone,
   locationPoi,
   missile,
-  satelliteDataFile,
-  satelliteIcon,
+  // satelliteDataFile,
+  // satelliteIcon,
   ship,
   explosion,
 } from '../../assests/images'
@@ -53,7 +53,6 @@ import Form from 'react-bootstrap/Form'
 let activeEntity: any = null
 const Tools = () => {
   const viewer = useAppSelector((store: any) => store.mapViewer.viewer)
-  const satelliteEntityCollection = new CustomDataSource('satellite_data')
 
   const [editStyle, setEditStyle] = useState(false)
   const [show, setShow] = useState(false)
@@ -236,8 +235,10 @@ const Tools = () => {
       drawer.startDraw({
         type: 'polyline',
       })
+      viewer.scene.screenSpaceCameraController.enableTranslate = false
       drawer.on('finishDraw', function (e) {
         e.polyline.width.setValue(3)
+        viewer.scene.screenSpaceCameraController.enableTranslate = true
       })
     } else if (drawType === 'rectangle') {
       drawer.startDraw({
@@ -291,8 +292,7 @@ const Tools = () => {
         activeEntity = e
         //  drawer.activeEntity = e
       })
-    }
-    else if (drawType === 'explosion') {
+    } else if (drawType === 'explosion') {
       const defaultPoint = new PointGraphics({
         show: true,
         pixelSize: 10,
@@ -315,8 +315,8 @@ const Tools = () => {
           image: explosion,
           // scale: 0.5,
           width: 50,
-          height: 50
-         },
+          height: 50,
+        },
         // point: defaultPoint,
         // label: label,
       })
@@ -325,8 +325,7 @@ const Tools = () => {
         activeEntity = e
         //  drawer.activeEntity = e
       })
-    }
-    else if (drawType === 'target') {
+    } else if (drawType === 'target') {
       const defaultPoint = new PointGraphics({
         show: true,
         pixelSize: 10,
@@ -376,17 +375,15 @@ const Tools = () => {
       drawShape('polygon')
     } else if (selectedItemId === 5) {
       drawShape('point')
-    }
-    else if (selectedItemId === 21) {
+    } else if (selectedItemId === 21) {
       drawShape('explosion')
-    }
-    else if (selectedItemId === 20) {
+    } /* else if (selectedItemId === 20) {
       if (!showSatelliteFlag) {
         addSatellitesToMap()
       } else {
         removeSatellitesFromMap()
       }
-    }
+    } */
   }
   const setEntityColor = (selectedColor: any) => {
     if (activeEntity && defined(activeEntity.polygon)) {
@@ -440,87 +437,6 @@ const Tools = () => {
         lifetime: 16.0,
       })
     ) */
-  }
-  function createSatelliteEntities(data, name) {
-    const totalSeconds = 600
-    const timestepInSeconds = 1
-    const start = JulianDate.fromDate(new Date())
-    const stop = JulianDate.addSeconds(start, totalSeconds, new JulianDate())
-    viewer.clock.startTime = start.clone()
-    viewer.clock.stopTime = stop.clone()
-    viewer.clock.currentTime = start.clone()
-    viewer.timeline.zoomTo(start, stop)
-
-    viewer.clock.multiplier = 1
-    viewer.clock.clockRange = ClockRange.LOOP_STOP
-    const positionsOverTime = new SampledPositionProperty()
-    for (let i = 0; i < totalSeconds; i += timestepInSeconds) {
-      const time = JulianDate.addSeconds(start, i, new JulianDate())
-      const jsDate = JulianDate.toDate(time)
-      const positionAndVelocity: any = satellite.propagate(data, jsDate)
-      const gmst = satellite.gstime(jsDate)
-      const p = satellite.eciToGeodetic(positionAndVelocity.position, gmst)
-      const position = Cartesian3.fromRadians(
-        p.longitude,
-        p.latitude,
-        p.height * 1000
-      )
-      positionsOverTime.addSample(time, position)
-    }
-    let entity = new Entity({
-      position: positionsOverTime,
-      name: name,
-      //@ts-expect-error
-      type: 'satellite',
-
-      billboard: {
-        image: satelliteIcon,
-        scale: 0.5,
-      },
-      label: {
-        text: name,
-        font: '12px sans-serif',
-        horizontalOrigin: HorizontalOrigin.CENTER,
-        verticalOrigin: VerticalOrigin.CENTER,
-        pixelOffset: new Cartesian2(0, 10),
-        outlineColor: Color.BLACK,
-        outlineWidth: 1,
-        scaleByDistance: new NearFarScalar(1.5e2, 2, 8.0e6, 0.0),
-      },
-    })
-    //@ts-expect-error
-    entity.satProperties = {
-      name: name,
-      satnum: data.satnum,
-      epoch: data.epochdays,
-    }
-    satelliteEntityCollection.entities.add(entity)
-    viewer.clock.shouldAnimate = true
-  }
-
-  const addSatellitesToMap = () => {
-    showSatelliteFlag = true
-    viewer.dataSources.add(satelliteEntityCollection)
-    fetch(satelliteDataFile)
-      .then((res) => res.text())
-      .then((parsedText) => {
-        var rowsList = parsedText.split('\n')
-        for (let i = 0; i < rowsList.length; i += 3) {
-          let satrec = satellite.twoline2satrec(
-            rowsList[i + 1],
-            rowsList[i + 2]
-          )
-          createSatelliteEntities(satrec, rowsList[i])
-        }
-      })
-  }
-
-  const removeSatellitesFromMap = () => {
-    viewer?.dataSources?._dataSources?.forEach((ds) => {
-      if (ds.name == 'satellite_data') {
-        ds.entities.removeAll()
-      }
-    })
   }
 
   return (
