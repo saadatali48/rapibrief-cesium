@@ -69,8 +69,8 @@ const Tools = () => {
   let handler: any
   let eventHandler: any
   let drawer: CesiumDrawer
-  const start = JulianDate.fromDate(new Date())
-  // const start = JulianDate.fromDate(new Date(2015, 2, 25, 16))
+  // const start = JulianDate.fromDate(new Date())
+  const start = JulianDate.fromDate(new Date(2015, 2, 25, 16))
   const stop = JulianDate.addSeconds(start, 60, new JulianDate())
 
   useEffect(() => {
@@ -115,9 +115,6 @@ const Tools = () => {
   const computePath = () => {
     let times = []
     const property = new SampledPositionProperty()
-
-    const incr = 300 / pathPositions.length
-
     for (let i = 0; i < pathPositions.length; i++) {
       const time = JulianDate.addSeconds(start, i * 10, new JulianDate())
       // const time = JulianDate.addSeconds(start, incr, new JulianDate())
@@ -194,8 +191,8 @@ const Tools = () => {
   const onLeftDown = (movement: any, selectedItemId) => {
     if (movement.position && viewer) {
       let ellipsoid = viewer.scene.globe.ellipsoid
-      // let cartesian = viewer.camera.pickEllipsoid(movement.position, ellipsoid)
-      let cartesian = viewer.scene.pickPosition(movement.position)
+      let cartesian = viewer.camera.pickEllipsoid(movement.position, ellipsoid)
+      // let cartesian = viewer.scene.pickPosition(movement.position)
       const cartographicPos = Cartographic.fromCartesian(cartesian)
       cartographicPos.height = 300
       if (
@@ -213,7 +210,7 @@ const Tools = () => {
         const newPos = Cartesian3.fromRadians(
           cartographicPos.longitude,
           cartographicPos.latitude,
-          15000
+          2000
         )
         pathPositions.push(newPos)
       }
@@ -222,7 +219,7 @@ const Tools = () => {
   const onLeftDoubleClick = (movement: any, selectedItemId: number) => {
     if (movement.position && viewer) {
       if (selectedItemId === 11) {
-        addFlyingEntity(planeModel1, 32)
+        addFlyingEntity(planeModel1, 20)
       } else if (selectedItemId === 12) {
         addFlyingEntity(heli1, 128)
       } else if (selectedItemId === 10) {
@@ -304,15 +301,18 @@ const Tools = () => {
         color: Color.RED,
         outlineColor: Color.WHITE,
         outlineWidth: 2,
-        heightReference:
-          viewer.scene.mode === SceneMode.SCENE3D
-            ? HeightReference.CLAMP_TO_GROUND
-            : HeightReference.NONE,
+
+        heightReference: HeightReference.CLAMP_TO_GROUND,
+        // viewer.scene.mode === SceneMode.SCENE3D
+        //   ? HeightReference.CLAMP_TO_GROUND
+        //   : HeightReference.NONE,
       })
       const label = {
         text: inputLabel,
         horizintalOrigin: HorizontalOrigin.RIGHT,
         verticalOrigin: VerticalOrigin.TOP,
+        heightReference: HeightReference.RELATIVE_TO_GROUND,
+        height: 10,
       }
       drawer.startDraw({
         type: 'point',
@@ -323,6 +323,8 @@ const Tools = () => {
       drawer.on('finishDraw', function (e) {
         handleShow()
         activeEntity = e
+        console.log(e)
+
         //  drawer.activeEntity = e
       })
     } /*  else if (drawType === 'explosion') {
@@ -437,9 +439,43 @@ const Tools = () => {
       createEntityOnClick(soldierModel, 'soldier')
     }
   }
+  const rgba2hex = (orig) => {
+    var a,
+      isPercent,
+      rgb = orig
+        .replace(/\s/g, '')
+        .match(/^rgba?\((\d+),(\d+),(\d+),?([^,\s)]+)?/i),
+      alpha = ((rgb && rgb[4]) || '').trim(),
+      hex = rgb
+        ? (rgb[1] | (1 << 8)).toString(16).slice(1) +
+          (rgb[2] | (1 << 8)).toString(16).slice(1) +
+          (rgb[3] | (1 << 8)).toString(16).slice(1)
+        : orig
+
+    if (alpha !== '') {
+      a = alpha
+    } else {
+      a = 1
+    }
+    // multiply before convert to HEX
+    a = ((a * 255) | (1 << 8)).toString(16).slice(1)
+    hex = hex + a
+
+    return hex
+  }
   const setEntityColor = (selectedColor: any) => {
-    if (activeEntity && defined(activeEntity.polygon)) {
-      activeEntity.polygon.material = Color.fromCssColorString(selectedColor)
+    if (
+      activeEntity &&
+      defined(activeEntity.polygon) &&
+      defined(selectedColor)
+    ) {
+      if (String(selectedColor).includes('#')) {
+        activeEntity.polygon.material = Color.fromCssColorString(selectedColor)
+      } else {
+        const colorStr = rgba2hex(selectedColor)
+        console.log(colorStr)
+        activeEntity.polygon.material = Color.fromCssColorString('#' + colorStr)
+      }
     }
   }
   const handleClose = () => {
@@ -493,12 +529,14 @@ const Tools = () => {
 
   const createEntityOnClick = (entityUri, type) => {
     const eventHandler1 = new ScreenSpaceEventHandler(viewer.scene?.canvas)
+    viewer.scene.globe.depthTestAgainstTerrain = true
     eventHandler1.setInputAction(function (movement: any) {
       if (movement.position) {
         // const pickedPosition = viewer.camera.pickEllipsoid(
         //   movement.position,
         //   viewer.scene.globe.ellipsoid
         // )
+
         const pickedPosition = viewer.scene.pickPosition(movement.position)
         const cartographicPos = Cartographic.fromCartesian(pickedPosition)
         const positionsElevations = sampleTerrainMostDetailed(
@@ -532,7 +570,7 @@ const Tools = () => {
                 position: Cartesian3.fromRadians(
                   cartographicPos.longitude,
                   cartographicPos.latitude,
-                  10
+                  0
                   // updatedPositions[0].height
                 ),
                 billboard: {
@@ -543,7 +581,7 @@ const Tools = () => {
                   heightReference: HeightReference.RELATIVE_TO_GROUND,
                 },
               })
-              viewer.flyTo(entity)
+              // viewer.flyTo(entity)
             })
           }
         })
@@ -554,6 +592,7 @@ const Tools = () => {
 
     eventHandler1.setInputAction(function (movement: any) {
       eventHandler1.destroy()
+      viewer.scene.globe.depthTestAgainstTerrain = false
     }, ScreenSpaceEventType.LEFT_DOUBLE_CLICK)
   }
 
@@ -603,6 +642,8 @@ const Tools = () => {
             defaultValue="#000"
             // value={this.state.color} - for controlled component
             onChange={(color) => {
+              console.log(color)
+
               setEntityColor(color)
             }}
           />

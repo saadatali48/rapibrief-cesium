@@ -2080,6 +2080,8 @@ function generateSatelliteOptions(options) {
     style: 'FILL_AND_OUTLINE',
     text: options.name,
     verticalOrigin: 'CENTER',
+    heightReference: HeightReference.RELATIVE_TO_GROUND,
+    // height: 10,
   }
   // 创建path
   const path = {

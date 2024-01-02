@@ -11,7 +11,7 @@ import {
   createWorldTerrain,
 } from 'cesium'
 import './Map.css'
-import cesiumDrawer from 'cesium-draw-custom'
+import CesiumDrawer from '../../lib/cesiumDraw'
 import { useAppDispatch, useAppSelector } from '../../../hooks/AppHooks'
 import { setLoader, setMapViewer, setShapeDrawer } from '../../reducer/reducer'
 
@@ -64,9 +64,9 @@ const MapComponent = () => {
           }
         }
       )
-      v.scene.globe.depthTestAgainstTerrain = true
+      v.scene.globe.depthTestAgainstTerrain = false
       v.scene.globe.enableLighting = false
-      const drawer = new cesiumDrawer(v)
+      const drawer = new CesiumDrawer(v, {})
       dispatch(setMapViewer(v))
       dispatch(setShapeDrawer(drawer))
     }
