@@ -557,7 +557,8 @@ const Tools = () => {
                 cartographicPos.latitude,
                 updatedPositions[0].height
               ),
-              // heightReference: HeightReference.CLAMP_TO_GROUND,
+              //@ts-expect-error
+              heightReference: HeightReference.CLAMP_TO_GROUND,
             })
             viewer.entities.add(soldEnt)
             viewer.zoomTo(soldEnt)
