@@ -35,7 +35,7 @@
 .Map {
   height: calc(100vh - 62px);
 }
-.cesium-viewer-bottom {
+/* .cesium-viewer-bottom {
   display: none !important;
 }
 .cesium-viewer-animationContainer {
@@ -43,6 +43,9 @@
 }
 .cesium-viewer-timelineContainer {
   visibility: hidden !important;
+} */
+.cesium-viewer .cesium-widget-credits{
+  display: none !important;
 }
 .compass {
   bottom: 0px !important;

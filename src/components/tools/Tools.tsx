@@ -67,15 +67,32 @@ const Tools = () => {
   let handler: any
   let eventHandler: any
   let drawer: CesiumDrawer
+  // const start = JulianDate.fromDate(new Date())
+  const start = JulianDate.fromDate(new Date(2015, 2, 25, 16))
+  const stop = JulianDate.addSeconds(start, 60, new JulianDate())
 
   useEffect(() => {
     if (viewer) {
+      //Make sure viewer is at the desired time.
+      viewer.clock.startTime = start.clone()
+      viewer.clock.stopTime = stop.clone()
+      viewer.clock.currentTime = start.clone()
+      viewer.clock.clockRange = ClockRange.LOOP_STOP //Loop at the end
+      viewer.clock.multiplier = 5
+      viewer.clock.shouldAnimate = true
+      //Set timeline to simulation bounds
+      viewer.timeline.zoomTo(start, stop)
+
       handler = new ScreenSpaceEventHandler(viewer.scene?.canvas)
       drawer = new CesiumDrawer(viewer, {})
       eventHandler = new ScreenSpaceEventHandler(viewer.scene?.canvas)
       eventHandler.setInputAction(function (movement: any) {
         if (movement.position) {
           const pickedObject = viewer.scene.pick(movement.position)
+          /* if (defined(pickedObject) && defined(pickedObject.id)) {
+            viewer.trackedEntity = pickedObject.id
+            pickedObject.id.viewFrom = new Cartesian3(-100, 10, 50)
+          } */
           if (
             defined(pickedObject) &&
             defined(pickedObject.id) &&
@@ -93,15 +110,15 @@ const Tools = () => {
 
   let pathPositions = []
 
-  const start = JulianDate.fromDate(new Date())
-  const stop = JulianDate.addSeconds(start, 360, new JulianDate())
-
   const computePath = () => {
-    var times = []
+    let times = []
     const property = new SampledPositionProperty()
+
+    const incr = 300 / pathPositions.length
 
     for (let i = 0; i < pathPositions.length; i++) {
       const time = JulianDate.addSeconds(start, i * 10, new JulianDate())
+      // const time = JulianDate.addSeconds(start, incr, new JulianDate())
       times.push(time)
       property.addSample(time, pathPositions[i])
       // viewer.entities.add({
@@ -113,6 +130,11 @@ const Tools = () => {
       //     outlineWidth: 3,
       //   },
       // })
+      /*   if (i === pathPositions.length - 1) {
+        // const start = JulianDate.fromDate(new Date())
+        viewer.clock.startTime = start.clone()
+        times = []
+      } */
     }
 
     return property
@@ -124,16 +146,6 @@ const Tools = () => {
 
     //Set bounds of our simulation time
 
-    //Make sure viewer is at the desired time.
-    viewer.clock.startTime = start.clone()
-    viewer.clock.stopTime = stop.clone()
-    viewer.clock.currentTime = start.clone()
-    viewer.clock.clockRange = ClockRange.UNBOUNDED //Loop at the end
-    viewer.clock.multiplier = 5
-    viewer.clock.shouldAnimate = true
-
-    //Set timeline to simulation bounds
-    viewer.timeline.zoomTo(start, stop)
     const position = computePath()
 
     //Actually create the entity
@@ -158,6 +170,8 @@ const Tools = () => {
         minimumPixelSize: minPixelSize,
       },
     })
+    console.log(entity)
+
     entity.position.setInterpolationOptions({
       interpolationDegree: 5,
       interpolationAlgorithm: LinearApproximation,
