@@ -2,9 +2,11 @@ import React, { useEffect, useState } from 'react'
 import './Tools.css'
 import { ToolsData } from './ToolsData'
 import { useAppSelector } from '../../hooks/AppHooks'
+import { SuperGif } from '@wizpanda/super-gif'
 import {
   BoundingSphere,
   BoxEmitter,
+  CallbackProperty,
   Cartesian2,
   Cartesian3,
   Cartographic,
@@ -67,8 +69,8 @@ const Tools = () => {
   let handler: any
   let eventHandler: any
   let drawer: CesiumDrawer
-  // const start = JulianDate.fromDate(new Date())
-  const start = JulianDate.fromDate(new Date(2015, 2, 25, 16))
+  const start = JulianDate.fromDate(new Date())
+  // const start = JulianDate.fromDate(new Date(2015, 2, 25, 16))
   const stop = JulianDate.addSeconds(start, 60, new JulianDate())
 
   useEffect(() => {
@@ -192,7 +194,8 @@ const Tools = () => {
   const onLeftDown = (movement: any, selectedItemId) => {
     if (movement.position && viewer) {
       let ellipsoid = viewer.scene.globe.ellipsoid
-      let cartesian = viewer.camera.pickEllipsoid(movement.position, ellipsoid)
+      // let cartesian = viewer.camera.pickEllipsoid(movement.position, ellipsoid)
+      let cartesian = viewer.scene.pickPosition(movement.position)
       const cartographicPos = Cartographic.fromCartesian(cartesian)
       cartographicPos.height = 300
       if (
@@ -322,7 +325,7 @@ const Tools = () => {
         activeEntity = e
         //  drawer.activeEntity = e
       })
-    } else if (drawType === 'explosion') {
+    } /*  else if (drawType === 'explosion') {
       const defaultPoint = new PointGraphics({
         show: true,
         pixelSize: 10,
@@ -339,10 +342,14 @@ const Tools = () => {
         horizintalOrigin: HorizontalOrigin.RIGHT,
         verticalOrigin: VerticalOrigin.TOP,
       }
+      let imageUrl = explosion
+
       drawer.startDraw({
         type: 'point',
         billboard: {
-          image: explosion,
+          image: new CallbackProperty(() => {
+            return imageUrl
+          }, false),
           // scale: 0.5,
           width: 50,
           height: 50,
@@ -353,9 +360,21 @@ const Tools = () => {
       drawer.on('finishDraw', function (e) {
         //  handleShow()
         activeEntity = e
+        const image = new Image()
+        image.src = explosion
+        const superGif = new SuperGif(image, {})
+        superGif.load(function () {
+          imageUrl = superGif.getCanvas().toDataURL('image/png')
+          console.log(e)
+
+          // e.billboard.image.setValue(
+          //   superGif.getCanvas().toDataURL('image/png')
+          // )
+        })
+
         //  drawer.activeEntity = e
       })
-    } else if (drawType === 'target') {
+    } */ else if (drawType === 'target') {
       const defaultPoint = new PointGraphics({
         show: true,
         pixelSize: 10,
@@ -411,11 +430,11 @@ const Tools = () => {
     } else if (selectedItemId === 5) {
       drawShape('point')
     } else if (selectedItemId === 21) {
-      drawShape('explosion')
+      createEntityOnClick(explosion, 'explosion')
     } else if (selectedItemId === 4) {
       drawShape('locationTarget')
     } else if (selectedItemId === 7) {
-      createEntityOnClick(soldierModel)
+      createEntityOnClick(soldierModel, 'soldier')
     }
   }
   const setEntityColor = (selectedColor: any) => {
@@ -472,36 +491,61 @@ const Tools = () => {
     ) */
   }
 
-  const createEntityOnClick = (entityUri) => {
+  const createEntityOnClick = (entityUri, type) => {
     const eventHandler1 = new ScreenSpaceEventHandler(viewer.scene?.canvas)
     eventHandler1.setInputAction(function (movement: any) {
       if (movement.position) {
-        const pickedPosition = viewer.camera.pickEllipsoid(
-          movement.position,
-          viewer.scene.globe.ellipsoid
-        )
+        // const pickedPosition = viewer.camera.pickEllipsoid(
+        //   movement.position,
+        //   viewer.scene.globe.ellipsoid
+        // )
+        const pickedPosition = viewer.scene.pickPosition(movement.position)
         const cartographicPos = Cartographic.fromCartesian(pickedPosition)
         const positionsElevations = sampleTerrainMostDetailed(
           viewer?.terrainProvider,
           [cartographicPos]
         )
         Promise.resolve(positionsElevations).then(function (updatedPositions) {
-          const soldEnt = new Entity({
-            model: {
-              uri: entityUri,
-              minimumPixelSize: 128,
-              maximumScale: 10,
-            },
+          if (type === 'soldier') {
+            const soldEnt = new Entity({
+              model: {
+                uri: entityUri,
+                minimumPixelSize: 128,
+                maximumScale: 10,
+              },
 
-            position: Cartesian3.fromRadians(
-              cartographicPos.longitude,
-              cartographicPos.latitude,
-              updatedPositions[0].height
-            ),
-            // heightReference: HeightReference.CLAMP_TO_GROUND,
-          })
-          viewer.entities.add(soldEnt)
-          viewer.zoomTo(soldEnt)
+              position: Cartesian3.fromRadians(
+                cartographicPos.longitude,
+                cartographicPos.latitude,
+                updatedPositions[0].height
+              ),
+              // heightReference: HeightReference.CLAMP_TO_GROUND,
+            })
+            viewer.entities.add(soldEnt)
+            viewer.zoomTo(soldEnt)
+          } else if (type === 'explosion') {
+            const image = new Image()
+            image.src = explosion
+            const superGif = new SuperGif(image, {})
+            superGif.load(function () {
+              const entity = viewer.entities.add({
+                position: Cartesian3.fromRadians(
+                  cartographicPos.longitude,
+                  cartographicPos.latitude,
+                  10
+                  // updatedPositions[0].height
+                ),
+                billboard: {
+                  image: new CallbackProperty(() => {
+                    return superGif.getCanvas().toDataURL('image/png')
+                  }, false),
+                  verticalOrigin: VerticalOrigin.BOTTOM,
+                  heightReference: HeightReference.RELATIVE_TO_GROUND,
+                },
+              })
+              viewer.flyTo(entity)
+            })
+          }
         })
 
         //eventHandler1.destroy()

@@ -64,7 +64,7 @@ const MapComponent = () => {
           }
         }
       )
-      v.scene.globe.depthTestAgainstTerrain = false
+      v.scene.globe.depthTestAgainstTerrain = true
       v.scene.globe.enableLighting = false
       const drawer = new cesiumDrawer(v)
       dispatch(setMapViewer(v))
